@@ -6,153 +6,63 @@
   <title>$COOKWARE Admin — Burn Submissions</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #0f0e0c;
-      color: #f0ece4;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f0e0c; color: #f0ece4; min-height: 100vh; padding: 40px 20px; }
     h1 { color: #c87941; font-size: 24px; margin-bottom: 8px; }
     .subtitle { color: #888; font-size: 14px; margin-bottom: 32px; }
     .stats { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
-    .stat-box {
-      background: rgba(200,121,65,0.1);
-      border: 1px solid rgba(200,121,65,0.3);
-      border-radius: 10px;
-      padding: 16px 24px;
-      min-width: 140px;
-    }
+    .stat-box { background: rgba(200,121,65,0.1); border: 1px solid rgba(200,121,65,0.3); border-radius: 10px; padding: 16px 24px; min-width: 140px; }
     .stat-num { font-size: 32px; font-weight: 700; color: #c87941; }
     .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
     .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
-    .tab {
-      padding: 8px 20px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.15);
-      background: transparent;
-      color: #888;
-      cursor: pointer;
-      font-size: 13px;
-    }
+    .tab { padding: 8px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: #888; cursor: pointer; font-size: 13px; }
     .tab.active { background: rgba(200,121,65,0.2); border-color: #c87941; color: #c87941; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    thead th {
-      text-align: left;
-      padding: 10px 14px;
-      background: rgba(200,121,65,0.15);
-      color: #c87941;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.15s; }
+    thead th { text-align: left; padding: 10px 14px; background: rgba(200,121,65,0.15); color: #c87941; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
     tbody tr:hover { background: rgba(255,255,255,0.04); }
     tbody td { padding: 12px 14px; color: #e0dbd0; word-break: break-all; }
     .wallet-cell { font-size: 12px; color: #a89880; font-family: monospace; }
     .ts-cell { font-size: 12px; color: #666; white-space: nowrap; }
     .empty { text-align: center; padding: 60px 20px; color: #555; font-size: 15px; }
-    .badge-pending {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      background: rgba(255,200,0,0.15);
-      color: #ffc800;
-      border: 1px solid rgba(255,200,0,0.3);
-    }
-    .badge-credited {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      background: rgba(0,200,80,0.15);
-      color: #00c850;
-      border: 1px solid rgba(0,200,80,0.3);
-    }
-    .credit-btn {
-      padding: 6px 14px;
-      border-radius: 7px;
-      border: 1px solid #c87941;
-      background: rgba(200,121,65,0.15);
-      color: #c87941;
-      cursor: pointer;
-      font-size: 12px;
-      white-space: nowrap;
-    }
-    .credit-btn:hover { background: rgba(200,121,65,0.35); }
-    .credit-btn:disabled { opacity: 0.4; cursor: default; }
-    .amount-input {
-      width: 90px;
-      padding: 5px 8px;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.3);
-      color: #fff;
-      font-size: 13px;
-      outline: none;
-    }
-    .action-row { display: flex; gap: 8px; align-items: center; }
-    .clear-btn {
-      margin-top: 32px;
-      padding: 10px 20px;
-      background: transparent;
-      border: 1px solid #ff4444;
-      color: #ff4444;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-    }
-    .clear-btn:hover { background: rgba(255,68,68,0.1); }
-    .refresh-btn {
-      margin-bottom: 20px;
-      padding: 10px 20px;
-      background: rgba(200,121,65,0.2);
-      border: 1px solid #c87941;
-      color: #c87941;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-    }
-    .refresh-btn:hover { background: rgba(200,121,65,0.35); }
-    .toast {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: #1a1a1a;
-      border: 1px solid #00c850;
-      color: #00c850;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 14px;
-      display: none;
-      z-index: 9999;
-    }
+    .badge-pending { display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;background:rgba(255,200,0,0.15);color:#ffc800;border:1px solid rgba(255,200,0,0.3); }
+    .badge-credited { display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;background:rgba(0,200,80,0.15);color:#00c850;border:1px solid rgba(0,200,80,0.3); }
+    .credit-btn { padding:6px 14px;border-radius:7px;border:1px solid #c87941;background:rgba(200,121,65,0.15);color:#c87941;cursor:pointer;font-size:12px;white-space:nowrap; }
+    .credit-btn:hover { background:rgba(200,121,65,0.35); }
+    .credit-btn:disabled { opacity:0.4;cursor:default; }
+    .amount-input { width:90px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.3);color:#fff;font-size:13px;outline:none; }
+    .action-row { display:flex;gap:8px;align-items:center; }
+    .clear-btn { margin-top:32px;padding:10px 20px;background:transparent;border:1px solid #ff4444;color:#ff4444;border-radius:8px;cursor:pointer;font-size:13px; }
+    .clear-btn:hover { background:rgba(255,68,68,0.1); }
+    .refresh-btn { margin-bottom:20px;padding:10px 20px;background:rgba(200,121,65,0.2);border:1px solid #c87941;color:#c87941;border-radius:8px;cursor:pointer;font-size:13px; }
+    .refresh-btn:hover { background:rgba(200,121,65,0.35); }
+    .toast { position:fixed;bottom:30px;right:30px;background:#1a1a1a;border:1px solid #00c850;color:#00c850;padding:12px 20px;border-radius:10px;font-size:14px;display:none;z-index:9999; }
+    .config-box { background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.3);border-radius:10px;padding:16px 20px;margin-bottom:28px;font-size:13px;color:#ffc800; }
+    .config-box input { margin-top:8px;width:100%;padding:8px 12px;border-radius:7px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.4);color:#fff;font-size:13px;outline:none; }
+    .config-box button { margin-top:8px;padding:7px 16px;border-radius:7px;border:none;background:#c87941;color:#fff;cursor:pointer;font-size:13px; }
   </style>
 </head>
 <body>
   <h1>🔥 $COOKWARE Burn Admin</h1>
   <p class="subtitle">Review and credit burn submissions</p>
 
+  <div class="config-box" id="config-box">
+    ⚙️ Paste your JSONBin Master Key and Bin ID to connect
+    <br>
+    <input id="cfg-key" placeholder="Master Key ($2a$10$...)" />
+    <input id="cfg-bin" placeholder="Bin ID (e.g. 6630abc123...)" style="margin-top:6px;" />
+    <button onclick="saveConfig()">Connect</button>
+  </div>
+
   <div class="stats">
-    <div class="stat-box">
-      <div class="stat-num" id="total-count">0</div>
-      <div class="stat-label">Total Submissions</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-num" id="pending-count">0</div>
-      <div class="stat-label">Pending</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-num" id="credited-count">0</div>
-      <div class="stat-label">Credited</div>
-    </div>
+    <div class="stat-box"><div class="stat-num" id="total-count">—</div><div class="stat-label">Total</div></div>
+    <div class="stat-box"><div class="stat-num" id="pending-count">—</div><div class="stat-label">Pending</div></div>
+    <div class="stat-box"><div class="stat-num" id="credited-count">—</div><div class="stat-label">Credited</div></div>
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="setTab('pending')">⏳ Pending</button>
-    <button class="tab" onclick="setTab('credited')">✅ Credited</button>
-    <button class="tab" onclick="setTab('all')">All</button>
+    <button class="tab active" onclick="setTab('pending',event)">⏳ Pending</button>
+    <button class="tab" onclick="setTab('credited',event)">✅ Credited</button>
+    <button class="tab" onclick="setTab('all',event)">All</button>
   </div>
 
   <button class="refresh-btn" onclick="loadBurns()">↻ Refresh</button>
@@ -160,130 +70,161 @@
   <table>
     <thead>
       <tr>
-        <th>#</th>
-        <th>Username</th>
-        <th>Wallet Address</th>
-        <th>Timestamp</th>
-        <th>Status</th>
-        <th>Amount</th>
-        <th>Action</th>
+        <th>#</th><th>Username</th><th>Wallet Address</th><th>Timestamp</th><th>Status</th><th>Amount</th><th>Action</th>
       </tr>
     </thead>
     <tbody id="burns-tbody">
-      <tr><td colspan="7" class="empty">Loading...</td></tr>
+      <tr><td colspan="7" class="empty">Connect your JSONBin above to load submissions.</td></tr>
     </tbody>
   </table>
 
   <br>
   <button class="clear-btn" onclick="clearAll()">🗑 Clear All Records</button>
-
   <div class="toast" id="toast"></div>
 
   <script>
     let currentTab = 'pending';
+    let JSONBIN_KEY = localStorage.getItem('cw_admin_key') || '';
+    let BIN_ID      = localStorage.getItem('cw_admin_bin') || '';
 
-    function setTab(tab) {
-      currentTab = tab;
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
+    if (!JSONBIN_KEY) JSONBIN_KEY = "$2a$10$.VvuR43nBaCGefu9ONY1DuSnqdd8ufzmDmDGiDOZzDIbxfjj5IkOq";
+    if (!BIN_ID)      BIN_ID     = "6a9e2c6fac6210605aaddfe5";
+
+    // Always hide config box — credentials are baked in
+    document.getElementById('config-box').style.display = 'none';
+    loadBurns();
+
+    function saveConfig() {
+      JSONBIN_KEY = document.getElementById('cfg-key').value.trim();
+      BIN_ID      = document.getElementById('cfg-bin').value.trim();
+      if (!JSONBIN_KEY || !BIN_ID) return showToast('Fill both fields', '#ff4444');
+      localStorage.setItem('cw_admin_key', JSONBIN_KEY);
+      localStorage.setItem('cw_admin_bin', BIN_ID);
+      document.getElementById('config-box').style.display = 'none';
       loadBurns();
     }
 
-    function loadBurns() {
-      const burns = JSON.parse(localStorage.getItem("cookware_burns") || "[]");
-      const tbody = document.getElementById("burns-tbody");
-      const today = new Date().toDateString();
-
-      const pending = burns.filter(b => !b.credited);
-      const credited = burns.filter(b => b.credited);
-
-      document.getElementById("total-count").textContent = burns.length;
-      document.getElementById("pending-count").textContent = pending.length;
-      document.getElementById("credited-count").textContent = credited.length;
-
-      let filtered = burns;
-      if (currentTab === 'pending') filtered = pending;
-      if (currentTab === 'credited') filtered = credited;
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty">No ${currentTab} submissions.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = [...filtered].reverse().map((b, i) => {
-        const ts = new Date(b.timestamp).toLocaleString();
-        const statusBadge = b.credited
-          ? `<span class="badge-credited">✅ Credited</span>`
-          : `<span class="badge-pending">⏳ Pending</span>`;
-        const creditedAmount = b.creditedAmount ? `<strong style="color:#00c850">${escHtml(String(b.creditedAmount))} $COOKWARE</strong>` : '—';
-        const action = b.credited
-          ? `<span style="color:#555;font-size:12px;">Done</span>`
-          : `<div class="action-row">
-               <input class="amount-input" id="amt-${i}" type="number" placeholder="Amount" min="1" />
-               <button class="credit-btn" onclick="creditBurn('${escHtml(b.wallet)}', '${escHtml(b.timestamp)}', ${i})">Credit Balance</button>
-             </div>`;
-
-        return `
-          <tr>
-            <td>${i + 1}</td>
-            <td><strong>${escHtml(b.username)}</strong></td>
-            <td class="wallet-cell">${escHtml(b.wallet)}</td>
-            <td class="ts-cell">${ts}</td>
-            <td>${statusBadge}</td>
-            <td>${creditedAmount}</td>
-            <td>${action}</td>
-          </tr>`;
-      }).join("");
+    function setTab(tab, e) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      loadBurns();
     }
 
-    function creditBurn(wallet, timestamp, rowIndex) {
-      const amountEl = document.getElementById(`amt-${rowIndex}`);
-      const amount = parseFloat(amountEl.value);
-      if (!amount || amount <= 0) {
-        showToast("⚠️ Enter a valid amount first.", "#ffc800");
-        return;
+    async function fetchBurns() {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': JSONBIN_KEY }
+      });
+      const data = await res.json();
+      return data.record.burns || [];
+    }
+
+    async function saveBurns(burns) {
+      await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+        body: JSON.stringify({ burns })
+      });
+    }
+
+    async function loadBurns() {
+      const tbody = document.getElementById('burns-tbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading...</td></tr>';
+      try {
+        const burns = await fetchBurns();
+        const pending  = burns.filter(b => !b.credited);
+        const credited = burns.filter(b => b.credited);
+
+        document.getElementById('total-count').textContent   = burns.length;
+        document.getElementById('pending-count').textContent = pending.length;
+        document.getElementById('credited-count').textContent= credited.length;
+
+        let filtered = burns;
+        if (currentTab === 'pending')  filtered = pending;
+        if (currentTab === 'credited') filtered = credited;
+
+        if (!filtered.length) {
+          tbody.innerHTML = `<tr><td colspan="7" class="empty">No ${currentTab} submissions.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = [...filtered].reverse().map((b, i) => {
+          const ts = new Date(b.timestamp).toLocaleString();
+          const statusBadge = b.credited
+            ? `<span class="badge-credited">✅ Credited</span>`
+            : `<span class="badge-pending">⏳ Pending</span>`;
+          const creditedAmt = b.creditedAmount
+            ? `<strong style="color:#00c850">${esc(String(b.creditedAmount))} $COOKWARE</strong>`
+            : '—';
+          const action = b.credited
+            ? `<span style="color:#555;font-size:12px;">Done</span>`
+            : `<div class="action-row">
+                 <input class="amount-input" id="amt-${i}" type="number" placeholder="Amount" min="1"/>
+                 <button class="credit-btn" onclick="creditBurn('${esc(b.wallet)}','${esc(b.timestamp)}',${i})">Credit Balance</button>
+               </div>`;
+          return `<tr>
+            <td>${i+1}</td>
+            <td><strong>${esc(b.username)}</strong></td>
+            <td class="wallet-cell">${esc(b.wallet)}</td>
+            <td class="ts-cell">${ts}</td>
+            <td>${statusBadge}</td>
+            <td>${creditedAmt}</td>
+            <td>${action}</td>
+          </tr>`;
+        }).join('');
+      } catch(e) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty">Error loading data. Check your Key & Bin ID.</td></tr>`;
+        console.error(e);
       }
+    }
 
-      // Write to cookware_burned_0x<wallet> key
-      const key = `cookware_burned_${wallet.toLowerCase()}`;
-      const existing = parseFloat(localStorage.getItem(key) || "0");
-      localStorage.setItem(key, existing + amount);
+    async function creditBurn(wallet, timestamp, rowIndex) {
+      const amtEl = document.getElementById(`amt-${rowIndex}`);
+      const amount = parseFloat(amtEl.value);
+      if (!amount || amount <= 0) return showToast('⚠️ Enter a valid amount', '#ffc800');
 
-      // Mark burn record as credited
-      const burns = JSON.parse(localStorage.getItem("cookware_burns") || "[]");
-      const record = burns.find(b => b.wallet === wallet && b.timestamp === timestamp);
-      if (record) {
-        record.credited = true;
-        record.creditedAmount = amount;
-        record.creditedAt = new Date().toISOString();
-        localStorage.setItem("cookware_burns", JSON.stringify(burns));
+      const btn = amtEl.nextElementSibling;
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const burns = await fetchBurns();
+        const record = burns.find(b => b.wallet === wallet && b.timestamp === timestamp);
+        if (record) {
+          record.credited       = true;
+          record.creditedAmount = amount;
+          record.creditedAt     = new Date().toISOString();
+          // Write credited key so index.html can read it
+          record.creditKey = `cookware_burned_${wallet.toLowerCase()}`;
+        }
+        await saveBurns(burns);
+        showToast(`✅ Credited ${amount} $COOKWARE to ${wallet.slice(0,10)}...`);
+        loadBurns();
+      } catch(e) {
+        showToast('❌ Save failed', '#ff4444');
+        btn.disabled = false;
+        btn.textContent = 'Credit Balance';
       }
+    }
 
-      showToast(`✅ Credited ${amount} $COOKWARE to ${wallet.slice(0,8)}...`);
+    async function clearAll() {
+      if (!confirm('Delete all burn records? This cannot be undone.')) return;
+      await saveBurns([]);
       loadBurns();
     }
 
     function showToast(msg, color) {
-      const t = document.getElementById("toast");
+      const t = document.getElementById('toast');
       t.textContent = msg;
-      t.style.borderColor = color || "#00c850";
-      t.style.color = color || "#00c850";
-      t.style.display = "block";
-      setTimeout(() => t.style.display = "none", 3000);
+      t.style.borderColor = color || '#00c850';
+      t.style.color = color || '#00c850';
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 3000);
     }
 
-    function escHtml(str) {
-      return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    function esc(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
-
-    function clearAll() {
-      if (confirm("Delete all burn records? This cannot be undone.")) {
-        localStorage.removeItem("cookware_burns");
-        loadBurns();
-      }
-    }
-
-    loadBurns();
   </script>
 </body>
 </html>
