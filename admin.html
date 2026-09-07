@@ -127,11 +127,14 @@
       }
     }
 
-    // Check if already logged in this session
-    if (sessionStorage.getItem('cw_auth') === '1') {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('admin-content').style.display = 'block';
-    }
+    // Session check runs after all functions are defined
+    window.addEventListener('DOMContentLoaded', () => {
+      if (sessionStorage.getItem('cw_auth') === '1') {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-content').style.display = 'block';
+        loadBurns();
+      }
+    });
 
     let currentTab = 'pending';
     let JSONBIN_KEY = localStorage.getItem('cw_admin_key') || '';
