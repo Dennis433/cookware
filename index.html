@@ -655,6 +655,8 @@
 
 <script>
   const BURN_ADDRESS = "0xECBf0dB6B150A667FcdBe88d20344f9e3D1bBb97";
+  const JSONBIN_KEY  = "$2a$10$.VvuR43nBaCGefu9ONY1DuSnqdd8ufzmDmDGiDOZzDIbxfjj5IkOq";
+  const BIN_ID       = "6a9e2c6fac6210605aaddfe5";
 
   function showBurnForm() {
     document.getElementById("burn-step-1").style.display = "none";
@@ -673,6 +675,7 @@
     const username = document.getElementById("burn-username").value.trim();
     const wallet = document.getElementById("burn-wallet").value.trim();
     const errEl = document.getElementById("burn-error");
+    const submitBtn = document.querySelector("#burn-step-2 .btn-primary");
 
     if (!username || !wallet) {
       errEl.textContent = "Please fill in both your username and wallet address.";
@@ -680,29 +683,48 @@
       return;
     }
     errEl.style.display = "none";
+    submitBtn.textContent = "Saving...";
+    submitBtn.disabled = true;
 
     const record = {
       username,
       wallet,
       burnAddress: BURN_ADDRESS,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      credited: false,
+      creditedAmount: null
     };
 
-    // Save to localStorage for admin page
-    const existing = JSON.parse(localStorage.getItem("cookware_burns") || "[]");
-    existing.push(record);
-    localStorage.setItem("cookware_burns", JSON.stringify(existing));
+    try {
+      // Read existing burns
+      const getRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { "X-Master-Key": JSONBIN_KEY }
+      });
+      const getData = await getRes.json();
+      const existing = getData.record.burns || [];
+      existing.push(record);
 
+      // Write back
+      await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_KEY },
+        body: JSON.stringify({ burns: existing })
+      });
+
+      // Check if already credited
+      const credited = existing.find(b => b.wallet.toLowerCase() === wallet.toLowerCase() && b.credited);
+      if (credited) {
+        document.getElementById("burn-balance-amount").textContent = credited.creditedAmount + " $COOKWARE";
+        document.getElementById("burn-balance-box").style.display = "block";
+      }
+    } catch(e) {
+      console.error(e);
+    }
+
+    submitBtn.textContent = "🔥 I Have Sent — Record My Burn";
+    submitBtn.disabled = false;
     document.getElementById("burn-step-2").style.display = "none";
     document.getElementById("burn-step-3").style.display = "block";
-
-    // Check if admin has already credited this wallet
-    const key = `cookware_burned_${wallet.toLowerCase()}`;
-    const credited = parseFloat(localStorage.getItem(key) || "0");
-    if (credited > 0) {
-      document.getElementById("burn-balance-amount").textContent = credited + " $COOKWARE";
-      document.getElementById("burn-balance-box").style.display = "block";
-    }
   }
 
   function resetBurn() {
