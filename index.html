@@ -609,27 +609,97 @@
   </div>
 </div>
 
-<!-- CA SECTION -->
+<!-- BURN SECTION -->
 <div class="ca-section" id="buy">
-  <div class="section-label" style="text-align:center">Contract Address</div>
-  <h2 style="text-align:center">Buy <em>$COOKWARE</em></h2>
-  <p style="text-align:center; margin: 0 auto 8px;">The market won't give it back. This will.</p>
+  <div class="section-label" style="text-align:center">Burn Portal</div>
+  <h2 style="text-align:center">Burn <em>$COOKWARE</em></h2>
 
-  <div class="ca-box">
-    <div>
-      <div class="ca-label">CA</div>
-      <div class="ca-addr" id="ca-text">0xc564a60B8A4A5152F0B48fcAF2bCd927a1550a52</div>
-    </div>
-    <button class="copy-btn" onclick="copyCA()">Copy</button>
+  <!-- STEP 1: Connect -->
+  <div id="burn-step-1" style="max-width:480px;margin:0 auto;text-align:center;">
+    <p style="color:var(--cream);margin-bottom:24px;">Connect your Robinhood Chain wallet to burn $COOKWARE and record your submission.</p>
+    <button class="btn-primary" onclick="showBurnForm()" style="width:100%;justify-content:center;">🔗 Connect Wallet</button>
   </div>
 
-  <div class="hero-btns" style="margin-top: 8px;">
-    <a href="#" class="btn-primary">Buy $COOKWARE on Uniswap</a>
-    <a href="#" class="btn-ghost">View Chart on DexScreener</a>
-    <a href="#" class="btn-ghost">Follow on X</a>
-    <a href="#" class="btn-ghost">Join Telegram</a>
+  <!-- STEP 2: Fill in details -->
+  <div id="burn-step-2" style="max-width:480px;margin:0 auto;display:none;">
+    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:24px;margin-bottom:16px;">
+      <label style="display:block;color:var(--cream);font-size:13px;margin-bottom:6px;">Your Username</label>
+      <input id="burn-username" type="text" placeholder="e.g. hodler_99" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.3);color:#fff;font-size:14px;margin-bottom:16px;outline:none;" />
+
+      <label style="display:block;color:var(--cream);font-size:13px;margin-bottom:6px;">Your Robinhood Chain Address</label>
+      <input id="burn-wallet" type="text" placeholder="0x..." style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.3);color:#fff;font-size:14px;margin-bottom:16px;outline:none;" />
+
+      <label style="display:block;color:var(--cream);font-size:13px;margin-bottom:6px;">Burn Address (copy & send your tokens here)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div id="burn-addr-display" style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.3);color:var(--copper-lt);font-size:12px;word-break:break-all;">0xECBf0dB6B150A667FcdBe88d20344f9e3D1bBb97</div>
+        <button onclick="copyBurnAddr()" style="padding:10px 16px;border-radius:8px;border:none;background:var(--copper);color:#fff;font-size:13px;cursor:pointer;white-space:nowrap;">Copy</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="submitBurn()" style="width:100%;justify-content:center;">🔥 I Have Sent — Record My Burn</button>
+    <p id="burn-error" style="color:#ff6b6b;font-size:13px;margin-top:10px;display:none;text-align:center;"></p>
+  </div>
+
+  <!-- STEP 3: Confirmation -->
+  <div id="burn-step-3" style="max-width:480px;margin:0 auto;display:none;text-align:center;">
+    <div style="font-size:48px;margin-bottom:12px;">🔥</div>
+    <h3 style="color:var(--copper-lt);margin-bottom:8px;">Burn Recorded!</h3>
+    <p style="color:var(--cream);">Your submission has been logged. The team will verify on-chain and follow up.</p>
+    <button class="btn-ghost" onclick="resetBurn()" style="margin-top:20px;">Submit Another</button>
   </div>
 </div>
+
+<script>
+  const BURN_ADDRESS = "0xECBf0dB6B150A667FcdBe88d20344f9e3D1bBb97";
+
+  function showBurnForm() {
+    document.getElementById("burn-step-1").style.display = "none";
+    document.getElementById("burn-step-2").style.display = "block";
+  }
+
+  function copyBurnAddr() {
+    navigator.clipboard.writeText(BURN_ADDRESS).then(() => {
+      const btn = event.target;
+      btn.textContent = "Copied!";
+      setTimeout(() => btn.textContent = "Copy", 2000);
+    });
+  }
+
+  async function submitBurn() {
+    const username = document.getElementById("burn-username").value.trim();
+    const wallet = document.getElementById("burn-wallet").value.trim();
+    const errEl = document.getElementById("burn-error");
+
+    if (!username || !wallet) {
+      errEl.textContent = "Please fill in both your username and wallet address.";
+      errEl.style.display = "block";
+      return;
+    }
+    errEl.style.display = "none";
+
+    const record = {
+      username,
+      wallet,
+      burnAddress: BURN_ADDRESS,
+      timestamp: new Date().toISOString()
+    };
+
+    // Save to localStorage for admin page
+    const existing = JSON.parse(localStorage.getItem("cookware_burns") || "[]");
+    existing.push(record);
+    localStorage.setItem("cookware_burns", JSON.stringify(existing));
+
+    document.getElementById("burn-step-2").style.display = "none";
+    document.getElementById("burn-step-3").style.display = "block";
+  }
+
+  function resetBurn() {
+    document.getElementById("burn-username").value = "";
+    document.getElementById("burn-wallet").value = "";
+    document.getElementById("burn-step-3").style.display = "none";
+    document.getElementById("burn-step-1").style.display = "block";
+  }
+</script>
 
 <!-- DIVIDER TICKER 2 -->
 <div class="divider-ticker">
