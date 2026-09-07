@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>$COOKWARE Admin — Burn Submissions</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0e0c;
+      color: #f0ece4;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    h1 {
+      color: #c87941;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .subtitle { color: #888; font-size: 14px; margin-bottom: 32px; }
+    .stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      background: rgba(200,121,65,0.1);
+      border: 1px solid rgba(200,121,65,0.3);
+      border-radius: 10px;
+      padding: 16px 24px;
+      min-width: 140px;
+    }
+    .stat-num { font-size: 32px; font-weight: 700; color: #c87941; }
+    .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead th {
+      text-align: left;
+      padding: 10px 14px;
+      background: rgba(200,121,65,0.15);
+      color: #c87941;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: rgba(255,255,255,0.04); }
+    tbody td {
+      padding: 12px 14px;
+      color: #e0dbd0;
+      word-break: break-all;
+    }
+    .wallet-cell { font-size: 12px; color: #a89880; font-family: monospace; }
+    .ts-cell { font-size: 12px; color: #666; white-space: nowrap; }
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #555;
+      font-size: 15px;
+    }
+    .clear-btn {
+      margin-top: 32px;
+      padding: 10px 20px;
+      background: transparent;
+      border: 1px solid #ff4444;
+      color: #ff4444;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .clear-btn:hover { background: rgba(255,68,68,0.1); }
+    .refresh-btn {
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background: rgba(200,121,65,0.2);
+      border: 1px solid #c87941;
+      color: #c87941;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .refresh-btn:hover { background: rgba(200,121,65,0.35); }
+  </style>
+</head>
+<body>
+  <h1>🔥 $COOKWARE Burn Admin</h1>
+  <p class="subtitle">All burn submissions from the portal</p>
+
+  <div class="stats">
+    <div class="stat-box">
+      <div class="stat-num" id="total-count">0</div>
+      <div class="stat-label">Total Submissions</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="today-count">0</div>
+      <div class="stat-label">Today</div>
+    </div>
+  </div>
+
+  <button class="refresh-btn" onclick="loadBurns()">↻ Refresh</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Username</th>
+        <th>Wallet Address</th>
+        <th>Burn Address</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody id="burns-tbody">
+      <tr><td colspan="5" class="empty">Loading...</td></tr>
+    </tbody>
+  </table>
+
+  <br>
+  <button class="clear-btn" onclick="clearAll()">🗑 Clear All Records</button>
+
+  <script>
+    function loadBurns() {
+      const burns = JSON.parse(localStorage.getItem("cookware_burns") || "[]");
+      const tbody = document.getElementById("burns-tbody");
+      const today = new Date().toDateString();
+
+      document.getElementById("total-count").textContent = burns.length;
+      document.getElementById("today-count").textContent = burns.filter(b => new Date(b.timestamp).toDateString() === today).length;
+
+      if (burns.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No burn submissions yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = [...burns].reverse().map((b, i) => {
+        const ts = new Date(b.timestamp);
+        const formatted = ts.toLocaleString();
+        return `
+          <tr>
+            <td>${burns.length - i}</td>
+            <td><strong>${escHtml(b.username)}</strong></td>
+            <td class="wallet-cell">${escHtml(b.wallet)}</td>
+            <td class="wallet-cell">${escHtml(b.burnAddress)}</td>
+            <td class="ts-cell">${formatted}</td>
+          </tr>`;
+      }).join("");
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    function clearAll() {
+      if (confirm("Delete all burn records? This cannot be undone.")) {
+        localStorage.removeItem("cookware_burns");
+        loadBurns();
+      }
+    }
+
+    loadBurns();
+  </script>
+</body>
+</html>
