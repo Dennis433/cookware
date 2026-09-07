@@ -78,9 +78,11 @@
   </div>
 
   <div class="stats">
-    <div class="stat-box"><div class="stat-num" id="total-count">—</div><div class="stat-label">Total</div></div>
+    <div class="stat-box"><div class="stat-num" id="total-count">—</div><div class="stat-label">Total Submissions</div></div>
     <div class="stat-box"><div class="stat-num" id="pending-count">—</div><div class="stat-label">Pending</div></div>
     <div class="stat-box"><div class="stat-num" id="credited-count">—</div><div class="stat-label">Credited</div></div>
+    <div class="stat-box" style="border-color:rgba(200,121,65,0.5);"><div class="stat-num" id="burned-total" style="font-size:22px;">—</div><div class="stat-label">Total Tokens Burned</div></div>
+    <div class="stat-box" style="border-color:rgba(0,200,80,0.4);background:rgba(0,200,80,0.06);"><div class="stat-num" id="refunded-total" style="font-size:22px;color:#00c850;">—</div><div class="stat-label">Total Tokens Refunded</div></div>
   </div>
 
   <div class="tabs">
@@ -94,11 +96,11 @@
   <table>
     <thead>
       <tr>
-        <th>#</th><th>Username</th><th>Wallet Address</th><th>Timestamp</th><th>Status</th><th>Amount</th><th>Action</th>
+        <th>#</th><th>Username</th><th>Wallet Address</th><th>Timestamp</th><th>Status</th><th>Tokens Burned</th><th>Refunded Amount</th><th>Action</th>
       </tr>
     </thead>
     <tbody id="burns-tbody">
-      <tr><td colspan="7" class="empty">Connect your JSONBin above to load submissions.</td></tr>
+      <tr><td colspan="8" class="empty">Connect your JSONBin above to load submissions.</td></tr>
     </tbody>
   </table>
 
@@ -174,7 +176,7 @@
 
     async function loadBurns() {
       const tbody = document.getElementById('burns-tbody');
-      tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty">Loading...</td></tr>';
       try {
         const burns = await fetchBurns();
         const pending  = burns.filter(b => !b.credited);
@@ -184,12 +186,23 @@
         document.getElementById('pending-count').textContent = pending.length;
         document.getElementById('credited-count').textContent= credited.length;
 
+        const totalBurned = burns.reduce((sum, b) => {
+          const amt = parseFloat(b.creditedBurnAmount || b.burnAmount || 0);
+          return sum + (isNaN(amt) ? 0 : amt);
+        }, 0);
+        const totalRefunded = burns.reduce((sum, b) => {
+          const amt = parseFloat(b.creditedAmount || 0);
+          return sum + (isNaN(amt) ? 0 : amt);
+        }, 0);
+        document.getElementById('burned-total').textContent   = totalBurned > 0 ? totalBurned.toLocaleString() : '0';
+        document.getElementById('refunded-total').textContent = totalRefunded > 0 ? totalRefunded.toLocaleString() : '0';
+
         let filtered = burns;
         if (currentTab === 'pending')  filtered = pending;
         if (currentTab === 'credited') filtered = credited;
 
         if (!filtered.length) {
-          tbody.innerHTML = `<tr><td colspan="7" class="empty">No ${currentTab} submissions.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" class="empty">No ${currentTab} submissions.</td></tr>`;
           return;
         }
 
@@ -198,14 +211,24 @@
           const statusBadge = b.credited
             ? `<span class="badge-credited">✅ Credited</span>`
             : `<span class="badge-pending">⏳ Pending</span>`;
+          const burnedAmt = b.creditedBurnAmount != null
+            ? `<strong style="color:#c87941">${esc(String(parseFloat(b.creditedBurnAmount).toLocaleString()))} $CW</strong>`
+            : (b.burnAmount
+              ? `<span style="color:#a89880;">${esc(String(parseFloat(b.burnAmount).toLocaleString()))} $CW <span style="font-size:10px;color:#555;">(user-reported)</span></span>`
+              : '—');
           const creditedAmt = b.creditedAmount
-            ? `<strong style="color:#00c850">${esc(String(b.creditedAmount))} $COOKWARE</strong>`
+            ? `<strong style="color:#00c850">${esc(String(parseFloat(b.creditedAmount).toLocaleString()))} $CW</strong>`
             : '—';
           const action = b.credited
-            ? `<span style="color:#555;font-size:12px;">Done</span>`
+            ? `<div class="action-row">
+                 <input class="amount-input" id="burn-${i}" type="number" placeholder="Burned" min="1" value="${b.creditedBurnAmount || b.burnAmount || ''}" style="width:80px;"/>
+                 <input class="amount-input" id="amt-${i}" type="number" placeholder="Refund" min="1" value="${b.creditedAmount || ''}" style="width:80px;"/>
+                 <button class="credit-btn" onclick="creditBurn('${esc(b.wallet)}','${esc(b.timestamp)}',${i})">Update</button>
+               </div>`
             : `<div class="action-row">
-                 <input class="amount-input" id="amt-${i}" type="number" placeholder="Amount" min="1"/>
-                 <button class="credit-btn" onclick="creditBurn('${esc(b.wallet)}','${esc(b.timestamp)}',${i})">Credit Balance</button>
+                 <input class="amount-input" id="burn-${i}" type="number" placeholder="Burned" min="1" value="${b.burnAmount || ''}"/>
+                 <input class="amount-input" id="amt-${i}" type="number" placeholder="Refund" min="1"/>
+                 <button class="credit-btn" onclick="creditBurn('${esc(b.wallet)}','${esc(b.timestamp)}',${i})">Credit</button>
                </div>`;
           return `<tr>
             <td>${i+1}</td>
@@ -213,20 +236,24 @@
             <td class="wallet-cell">${esc(b.wallet)}</td>
             <td class="ts-cell">${ts}</td>
             <td>${statusBadge}</td>
+            <td>${burnedAmt}</td>
             <td>${creditedAmt}</td>
             <td>${action}</td>
           </tr>`;
         }).join('');
       } catch(e) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty">Error loading data. Check your Key & Bin ID.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="empty">Error loading data. Check your Key & Bin ID.</td></tr>`;
         console.error(e);
       }
     }
 
     async function creditBurn(wallet, timestamp, rowIndex) {
-      const amtEl = document.getElementById(`amt-${rowIndex}`);
-      const amount = parseFloat(amtEl.value);
-      if (!amount || amount <= 0) return showToast('⚠️ Enter a valid amount', '#ffc800');
+      const burnAmtEl = document.getElementById(`burn-${rowIndex}`);
+      const amtEl     = document.getElementById(`amt-${rowIndex}`);
+      const burnedAmt = parseFloat(burnAmtEl.value);
+      const refundAmt = parseFloat(amtEl.value);
+
+      if (!refundAmt || refundAmt <= 0) return showToast('⚠️ Enter a valid refund amount', '#ffc800');
 
       const btn = amtEl.nextElementSibling;
       btn.disabled = true;
@@ -236,19 +263,19 @@
         const burns = await fetchBurns();
         const record = burns.find(b => b.wallet === wallet && b.timestamp === timestamp);
         if (record) {
-          record.credited       = true;
-          record.creditedAmount = amount;
-          record.creditedAt     = new Date().toISOString();
-          // Write credited key so index.html can read it
+          record.credited            = true;
+          record.creditedAmount      = refundAmt;
+          record.creditedBurnAmount  = burnedAmt > 0 ? burnedAmt : (record.burnAmount || null);
+          record.creditedAt          = new Date().toISOString();
           record.creditKey = `cookware_burned_${wallet.toLowerCase()}`;
         }
         await saveBurns(burns);
-        showToast(`✅ Credited ${amount} $COOKWARE to ${wallet.slice(0,10)}...`);
+        showToast(`✅ Credited ${refundAmt.toLocaleString()} $COOKWARE to ${wallet.slice(0,10)}...`);
         loadBurns();
       } catch(e) {
         showToast('❌ Save failed', '#ff4444');
         btn.disabled = false;
-        btn.textContent = 'Credit Balance';
+        btn.textContent = 'Credit';
       }
     }
 
