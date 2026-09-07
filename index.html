@@ -470,6 +470,79 @@
   .cta-band p { color: rgba(245,237,224,0.7); margin: 0 auto 36px; max-width: 50ch; }
   .cta-band .btn-primary { background: var(--cream); color: var(--dark); }
   .cta-band .btn-primary:hover { background: var(--white); }
+
+  /* ── HAMBURGER ── */
+  .nav-hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 200;
+  }
+  .nav-hamburger span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--copper-lt);
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+
+  /* ── GLOBAL MOBILE FIXES ── */
+  @media (max-width: 680px) {
+    html, body { overflow-x: hidden; max-width: 100vw; }
+
+    nav { padding: 12px 5%; position: relative; flex-wrap: wrap; }
+    .nav-hamburger { display: flex; }
+    .nav-links {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      background: rgba(14,9,6,0.98);
+      border-bottom: 1px solid rgba(181,101,42,0.3);
+      padding: 16px 5% 20px;
+      gap: 4px;
+      z-index: 150;
+    }
+    .nav-links.open { display: flex; }
+    .nav-links li { width: 100%; }
+    .nav-links a { display: block; padding: 10px 0; font-size: 15px; }
+    .nav-cta { text-align: center; border-radius: 6px; padding: 10px 0 !important; }
+
+    .hero { padding: 60px 5% 50px; }
+    .hero h1 { font-size: clamp(36px, 10vw, 56px); }
+    .hero-sub { font-size: 15px; }
+    .hero-btns { flex-direction: column; align-items: stretch; gap: 10px; }
+    .hero-btns a, .hero-btns button { text-align: center; justify-content: center; width: 100%; }
+
+    section, .ca-section, .cta-band { padding-left: 5%; padding-right: 5%; }
+
+    .ticker-track span { padding: 0 18px; font-size: 12px; }
+
+    .story-grid { grid-template-columns: 1fr !important; }
+    .stats-row { grid-template-columns: 1fr 1fr !important; }
+    .steps { grid-template-columns: 1fr !important; }
+    .copper-cards { grid-template-columns: 1fr !important; }
+
+    #burn-step-1, #burn-step-2, #burn-step-3 {
+      max-width: 100% !important;
+      padding: 0 2px;
+    }
+
+    .ca-section { padding: 40px 5%; }
+    .ca-box { flex-direction: column; gap: 10px; }
+    .ca-addr { font-size: 11px; word-break: break-all; }
+
+    p { max-width: 100% !important; }
+
+    #copper { flex-direction: column !important; }
+    #copper > div { min-width: unset !important; width: 100% !important; }
+  }
 </style>
 </head>
 <body>
@@ -499,11 +572,14 @@
 <!-- NAV -->
 <nav>
   <div class="nav-logo">$COOKWARE</div>
-  <ul class="nav-links">
-    <li><a href="#story">The Story</a></li>
-    <li><a href="#how">How to Claim</a></li>
-    <li><a href="#copper">Copper</a></li>
-    <li><a href="#buy" class="nav-cta">Buy $COOKWARE</a></li>
+  <button class="nav-hamburger" id="nav-toggle" onclick="toggleNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#story" onclick="closeNav()">The Story</a></li>
+    <li><a href="#how" onclick="closeNav()">How to Claim</a></li>
+    <li><a href="#copper" onclick="closeNav()">Copper</a></li>
+    <li><a href="#buy" class="nav-cta" onclick="closeNav()">Burn $COOKWARE</a></li>
   </ul>
 </nav>
 
@@ -864,6 +940,18 @@
     btn.textContent = 'Copied!';
     setTimeout(() => btn.textContent = 'Copy', 2000);
   }
+</script>
+<script>
+  function toggleNav() {
+    document.getElementById('nav-links').classList.toggle('open');
+  }
+  function closeNav() {
+    document.getElementById('nav-links').classList.remove('open');
+  }
+  // Close nav on outside click
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('nav')) closeNav();
+  });
 </script>
 </body>
 </html>
