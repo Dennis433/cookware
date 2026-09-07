@@ -759,6 +759,8 @@
         <div style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:var(--copper-lt);font-size:11px;word-break:break-all;font-family:monospace;">0xECBf0dB6B150A667FcdBe88d20344f9e3D1bBb97</div>
         <button onclick="copyBurnAddr()" id="copy-btn" style="padding:10px 14px;border-radius:8px;border:none;background:var(--copper);color:#fff;font-size:13px;cursor:pointer;white-space:nowrap;">Copy</button>
       </div>
+      <label style="display:block;color:#888;font-size:12px;margin-bottom:6px;">Amount of $COOKWARE You Are Burning</label>
+      <input id="burn-amount" type="number" min="1" placeholder="e.g. 100000" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.3);color:#fff;font-size:14px;margin-bottom:16px;outline:none;" />
       <button class="btn-primary" onclick="submitBurn()" id="submit-btn" style="width:100%;justify-content:center;">🔥 I Have Sent — Record My Burn</button>
       <p id="burn-error" style="color:#ff6b6b;font-size:13px;margin-top:10px;display:none;text-align:center;"></p>
       <p id="burn-success" style="color:#00c850;font-size:13px;margin-top:10px;display:none;text-align:center;">✅ Burn recorded! Admin will verify and credit your balance.</p>
@@ -848,16 +850,18 @@
       const data = await res.json();
       const burns = data.record.burns || [];
 
-      // Staked = total submissions for this wallet
+      // Burned = sum of all burnAmount for this wallet
       const myBurns = burns.filter(b => b.wallet.toLowerCase() === wallet.toLowerCase());
-      const staked  = myBurns.length;
+      const totalBurned = myBurns
+        .filter(b => b.burnAmount)
+        .reduce((sum, b) => sum + parseFloat(b.burnAmount), 0);
 
       // Refunded = sum of all credited amounts for this wallet
       const refunded = myBurns
         .filter(b => b.credited && b.creditedAmount)
         .reduce((sum, b) => sum + parseFloat(b.creditedAmount), 0);
 
-      document.getElementById('staked-balance').textContent   = staked > 0 ? staked + ' burn' + (staked > 1 ? 's' : '') : '0';
+      document.getElementById('staked-balance').textContent   = totalBurned > 0 ? totalBurned.toLocaleString() : '0';
       document.getElementById('refunded-balance').textContent = refunded > 0 ? refunded.toLocaleString() : '0';
     } catch(e) {
       document.getElementById('staked-balance').textContent   = '—';
@@ -886,9 +890,20 @@
     btn.textContent = 'Saving...';
     btn.disabled = true;
 
+    const burnAmountInput = document.getElementById('burn-amount');
+    const burnAmount = parseFloat(burnAmountInput.value);
+    if (!burnAmount || burnAmount <= 0) {
+      errEl.textContent = 'Please enter the amount of $COOKWARE you are burning.';
+      errEl.style.display = 'block';
+      btn.textContent = '🔥 I Have Sent — Record My Burn';
+      btn.disabled = false;
+      return;
+    }
+
     const record = {
       username, wallet,
       burnAddress: BURN_ADDRESS,
+      burnAmount: burnAmount,
       timestamp: new Date().toISOString(),
       credited: false,
       creditedAmount: null
@@ -907,6 +922,7 @@
       });
 
       succEl.style.display = 'block';
+      burnAmountInput.value = '';
       loadBalances(wallet);
     } catch(e) {
       errEl.textContent    = 'Something went wrong. Please try again.';
