@@ -644,7 +644,11 @@
   <div id="burn-step-3" style="max-width:480px;margin:0 auto;display:none;text-align:center;">
     <div style="font-size:48px;margin-bottom:12px;">🔥</div>
     <h3 style="color:var(--copper-lt);margin-bottom:8px;">Burn Recorded!</h3>
-    <p style="color:var(--cream);">Your submission has been logged. The team will verify on-chain and follow up.</p>
+    <p style="color:var(--cream);">Your submission has been logged. The team will verify on-chain and credit your balance.</p>
+    <div id="burn-balance-box" style="display:none;margin-top:20px;padding:16px 24px;background:rgba(0,200,80,0.08);border:1px solid rgba(0,200,80,0.3);border-radius:12px;">
+      <div style="font-size:12px;color:#888;margin-bottom:4px;">Your Credited Balance</div>
+      <div id="burn-balance-amount" style="font-size:28px;font-weight:700;color:#00c850;"></div>
+    </div>
     <button class="btn-ghost" onclick="resetBurn()" style="margin-top:20px;">Submit Another</button>
   </div>
 </div>
@@ -691,6 +695,14 @@
 
     document.getElementById("burn-step-2").style.display = "none";
     document.getElementById("burn-step-3").style.display = "block";
+
+    // Check if admin has already credited this wallet
+    const key = `cookware_burned_${wallet.toLowerCase()}`;
+    const credited = parseFloat(localStorage.getItem(key) || "0");
+    if (credited > 0) {
+      document.getElementById("burn-balance-amount").textContent = credited + " $COOKWARE";
+      document.getElementById("burn-balance-box").style.display = "block";
+    }
   }
 
   function resetBurn() {
